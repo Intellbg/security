@@ -1,0 +1,14 @@
+{% extends 'header.html' %}
+{% block content_admin %}
+{% load static %}
+
+{% include 'operations/table.html' %}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#navigation li').removeClass('active');
+        $('#nav-item-operaciones').addClass('active');
+    });
+</script>
+
+{% endblock content_admin %}

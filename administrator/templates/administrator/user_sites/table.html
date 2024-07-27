@@ -1,0 +1,220 @@
+{% extends 'header.html' %}
+{% block content_admin %}
+{% load static %}
+
+<script src="{% static 'js/sb-admin.min.js' %}"></script>
+
+<div class="card mb-3">
+	<div class="card-header d-flex justify-content-between align-items-center">
+		<span>
+			<i class="fa fa-table"></i>
+			Residentes Pendientes
+		</span>
+	</div>
+	<div class="card-body">
+		<div class="table-responsive">
+			<table class="table table-bordered w-100" id="myTable" cellspacing="0">
+				<thead>
+					<tr>
+						<th class="text-center">Nombres</th>
+						<th class="text-center">Apellido</th>
+						<th class="text-center">Cédula</th>
+						<th class="text-center">Email</th>
+						<th class="text-center">Acciones</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+
+<div id="myModal2" class="modal fade modal-md" role="dialog">
+	<div class="modal-dialog">
+		<form method="POST" form="role">
+			{% csrf_token %} <!-- Inclusión de CSRF token en el formulario para verificación de sitio autorizado -->
+			<input type="hidden" name="id_user" value="">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<div style="clear:both;"></div>
+				</div>
+				<div class="modal-body">
+					<p>
+						Está seguro de autorizar invitaciones al residente <strong class="text-info"
+							name="lbl_username"></strong>?
+					</p>
+					<div class="form-group col-md-10 col-sm-10">
+						<label>Dirección del Residente:</label>
+						<div class="col-md-6 col-sm-6 pull-right">
+							<input type="text" placeholder="Dirección opcional" name="resident_dir"
+								class="form-control">
+						</div>
+						<div>
+							<input type="checkbox" name="passe_id">&nbsp;
+							<i class="fa fa-qrcode fa-lg"></i>
+							<label>Usar PASSE ID</label>
+						</div>
+						<br>
+						<div>
+							<input type="checkbox" name="app" checked>&nbsp;
+							<i class="fa fa-mobile fa-2x"></i>
+							<label>Invitar por app</label>
+						</div>
+						<br>
+						<div>
+							<input type="checkbox" name="whatsapp">&nbsp;
+							<i class="fa fa-whatsapp fa-lg" style="color: green;"></i>
+							<label>Invitar por Whatsapp</label>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-info">Autorizar</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<!-- Modal de Rechazar residentes  -->
+{% include 'administrator/user_sites/modals/reject.html' %}
+{% include 'administrator/user_sites/modals/edit_email.html' %}
+{% include 'administrator/user_sites/modals/permissions.html' %}
+
+<script type="text/javascript">
+	$(document).ready(function () {
+		$('#navigation li').removeClass('active');
+		$('#nav-item-pendientes').addClass('active');
+
+		$('#myTable').DataTable({
+			language: {
+				url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/es-ES.json',
+			},
+			"processing": true,
+			ajax: {
+				url: `/api/v3/person-site/?site_approve=False`,
+				type: "GET",
+				dataSrc: "results",
+				headers: {
+					"X-CSRFToken": "{{ csrf_token }}",
+				},
+				error: function (xhr, status, error) {
+					console.error(error);
+				},
+			},
+			columns: [
+				{ data: "person.first_name", title: "Nombre" },
+				{ data: "person.last_name", title: "Apellido" },
+				{ data: "person.document_number", title: "Cédula" },
+				{ data: "person.user.username", title: "Email" },
+				{
+					title: "Acciones", render: function (data, type, row) {
+						const buttons = {
+							auth: `<a 
+					    class="d-inline-block auth_opt" 
+						title="Autorizar"
+						data-id="${row.id}"
+						data-customer-site-id="${row.id}"
+						data-first-name="${row.person.first_name}"
+						data-last-name="${row.person.last_name}"
+						data-document_number="${row.person.document_number}"
+						data-celular="${row.person.celular}" 
+						data-name="${row.person.first_name} ${row.person.last_name}">
+						<i style="color:green;" class="fa fa-fw fa-check"></i>
+						</a>`,
+							reject: `
+						<a 
+						class="d-inline-block remo_opt" 
+						title="Rechazar"
+						data-id="${row.id}"
+						data-name="${row.person.first_name} ${row.person.last_name}">
+						<i style="color:red;" class="fa fa-fw fa-times"></i>
+						</a>`,
+							edit: `
+						<a 
+						class="d-inline-block edit_opt" 
+						title="Editar email"
+						data-id="${row.id}" 
+						data-name="${row.person.first_name} ${row.person.last_name}">
+						<i style="color:blue;" class="fa fa-fw fa-pencil"></i>
+						</a>
+						`,
+						}
+						return `${buttons.auth} ${buttons.reject} ${buttons.edit}`;
+					}
+				},
+
+			],
+			bInfo: false,
+			responsive: true,
+			"scrollX": true,
+		});
+
+
+		$('#myTable').on('click', '.auth_opt', function () {
+			var slug = $(this).data('id');
+			var name = $(this).data('name');
+			var customerSiteId = $(this).data('customer-site-id');
+			if (slug != null && slug != ' ') {
+				$('#editPersonPermissionsModal input[name="customer-site-id"]').val(customerSiteId);
+				$('#editPersonPermissionsModal div[name="editPersonPermissionsModalTitle"]')
+					.html(`¿Está seguro de autorizar al usuario <strong>${name}</strong>?`);
+				$('#editPersonPermissionsModal input[name="id_user"]').val(slug);
+				$('#editPersonPermissionsModal input[name="first-name"]')
+					.val($(this)
+						.data('first-name'));
+				$('#editPersonPermissionsModal input[name="last-name"]')
+					.val($(this)
+						.data('last-name'));
+				$('#editPersonPermissionsModal input[name="document_number"]')
+					.val($(this)
+						.data('document_number'));
+				$('#editPersonPermissionsModal input[name="celular"]')
+					.val($(this)
+						.data('celular'));
+				$('#editPersonPermissionsModal').modal('show');
+			}
+		});
+
+		$('#myTable').on('click', '.remo_opt', function () {
+			var slug = $(this).data('id');
+			var name = $(this).data('name');
+			if (slug != null && slug != ' ') {
+				$('#rejectPersonModal strong[name="lbl_username"]').html(name);
+				$('#rejectPersonModal input[name="id"]').val(slug);
+				$('#rejectPersonModal').modal('show');
+			}
+		});
+
+
+		$('#myTable').on('click', '.email_opt', function () {
+			var slug = $(this).data('id');
+			var name = $(this).data('name');
+			if (slug != null && slug != ' ') {
+				$('#myModal4 strong[name="lbl_username"]').html(name);
+				$('#myModal4 input[name="id_user"]').val(slug);
+				$('#myModal4').modal('show');
+			}
+		});
+
+
+		$('#myTable').on('click', '.edit_opt', function () {
+			var slug = $(this).data('id');
+			var name = $(this).data('name');
+			if (slug != null && slug != ' ') {
+				$('#editEmailModal div[name="lbl_username"]')
+					.html(`Editar el email de <strong>${name}</strong>`);
+				$('#editEmailModal input[name="id"]').val(slug);
+				$('#editEmailModal').modal('show');
+			}
+		});
+
+	});
+
+</script>
+
+</div>
+{% endblock content_admin %}

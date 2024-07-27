@@ -1,0 +1,86 @@
+{% load static %}
+<!-- Edit email modal -->
+<div id="editEmailModal" class="modal fade modal-md" role="dialog">
+  <div class="modal-dialog">
+    <input type="hidden" name="id" value="" />
+    <div class="modal-content">
+      <div class="modal-header">
+        <form id="editEmailForm" name="editEmailForm">
+          <button type="button" id="closeEditMailModal" class="close" data-dismiss="modal">
+            &times;
+          </button>
+          <div style="clear: both"></div>
+      </div>
+      <div class="modal-body">
+        <!-- Form -->
+        <div class="form-group col-md-10 col-sm-10">
+          <div name="lbl_username"></div>
+          <div class="mb-3">
+            <label class="form-label">Nuevo email</label>
+            <input type="text" class="form-control" id="email" required />
+          </div>
+        </div>
+      </div>
+      <div id="editEmailStatusMessage"></div>
+      <div class="modal-footer">
+        <button type="submit" id="createButton" class="btn btn-primary">
+          Editar
+        </button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Cerrar
+        </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/sb-admin.min.js' %}"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    $("#editEmailForm").submit(function (event) {
+      event.preventDefault();
+      const showError = (id, xhr) => {
+        const { responseJSON } = xhr;
+        const getError = () => {
+          if (responseJSON) {
+            let errors = "";
+            for (const [key, value] of Object.entries(responseJSON)) {
+              errors = errors + value[0];
+            }
+            return errors;
+          }
+          return false;
+        };
+        const error = getError();
+        $(`#${id}`)
+          .text(error || "Ha ocurrido un error")
+          .addClass("alert alert-danger text-center mt-3")
+          .show();
+      };
+
+      var formData = {
+        email: $("#email").val(),
+      };
+      var id = $('#editEmailModal input[name="id"]').val();
+
+      $.ajax({
+        url: `/api/v3/user-site/update-email/${id}/`,
+        method: "PATCH",
+        data: JSON.stringify(formData),
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        dataType: "json",
+        contentType: "application/json",
+        success: function (data) {
+          $("#editEmailModal").modal("hide");
+          $("#myTable").DataTable().ajax.reload();
+        },
+        error: function (xhr, status, error) {
+          showError("editEmailStatusMessage", xhr);
+        },
+      });
+    });
+  })
+</script>
+</div>

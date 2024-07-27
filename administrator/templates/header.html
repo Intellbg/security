@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="background-color:#262261!important;"
+	id="mainNav">
+
+	<img src="{% static 'img/Passelogowhite.png' %}" class="img-responsive" style='max-height:40px;' alt="face">
+	<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+		data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+		aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="collapse navbar-collapse" id="navbarResponsive">
+		<ul class="navbar-nav navbar-sidenav" id="navigation">
+			<li id="nav-item-home" class="nav-item active">
+				<a class="nav-link" href='/'>
+					<i class="fa fa-fw fa-home "></i>
+					<span class="nav-link-text">
+						Home
+					</span>
+				</a>
+			</li>
+			<li id="nav-item-houses" class="nav-item">
+				<a class="nav-link" href="{% url 'administrator_household_table' %}">
+					<i class="fa fa-fw fa-building"></i>
+					<span class="nav-link-text">
+						Casas
+					</span>
+				</a>
+			</li>
+			<li id="nav-item-household-persons" class="nav-item">
+				<a class="nav-link" href="{% url 'administrator_household_persons' %}">
+					<i class="fa fa-fw fa-user"></i>
+					<span class="nav-link-text">
+						Residentes
+					</span>
+				</a>
+			</li>
+			<li id="nav-item-pendientes" class="nav-item">
+				<a class="nav-link" href="{% url 'administrator_un_auth_users' %}">
+					<i class="fa fa-fw fa-hourglass-o"></i>
+					<span class="nav-link-text">
+						Autorizaciones Pendientes APP
+					</span>
+				</a>
+			</li>
+			<li id="nav-item-operaciones" class="nav-item">
+				<a class="nav-link" href="{% url 'administrator_operations' %}">
+					<i class="fa fa-fw fa-tasks"></i>
+					<span class="nav-link-text">
+						Operaciones
+					</span>
+				</a>
+			</li>
+		</ul>
+		<ul class="navbar-nav sidenav-toggler">
+			<li class="nav-item">
+				<a class="nav-link text-center" id="sidenavToggler">
+					<i class="fa fa-fw fa-angle-left"></i>
+				</a>
+			</li>
+		</ul>
+		<ul style="color:#7FFFD4;" class="navbar-nav ml-auto">
+			<li class="nav-item">
+				<a class="nav-link" href="{% url 'logout' %}" style="color:white;">
+					<i class="fa fa-fw fa-sign-out"></i>
+					Cerrar Sesión
+				</a>
+			</li>
+		</ul>
+
+	</div> <!--well bs-sidebar affix-->
+</nav>
+
+
+<div class="content-wrapper">
+	<div class="container-fluid">
+		{% if user.is_authenticated %}
+
+		{% include 'mensajes.html' %}
+
+		{% block content %}
+
+		{% block content_admin %}
+
+		{% endblock content_admin %}
+
+
+		{% endblock %}
+		{% endif %}
+	</div>
+</div>
+{% endblock body %}
+{% block footer %}
+<footer class="sticky-footer">
+
+	<div class="container" style='margin-left:15px;overflow: hidden;'>
+		<div class="text-center">
+			<small>Copyright &copy; Passe 2018</small>
+		</div>
+	</div>
+</footer>
+{% endblock footer %}

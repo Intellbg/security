@@ -1,0 +1,14 @@
+.card-body {
+    font-size: 12px;
+}
+
+th {
+    background-color: #F0F0F0;
+    color: black;
+    text-align: center;
+}
+
+th.dt-body-center,
+td.dt-body-center {
+    text-align: center;
+}

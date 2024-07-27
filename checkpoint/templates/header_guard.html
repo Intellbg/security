@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body %}
+
+<nav class="navbar navbar-expand-sm fixed-top d-flex" style="background-color:#262261!important;" id="mainNav">
+
+	<div class="d-flex w-100">
+		<img src="{% static 'img/Passelogowhite.png' %}" class="img-responsive" style='max-height:40px;' alt="face">
+		<span class="text-white">{{request.user}}</span>
+	</div>
+
+	<h3 class="text-center text-white ma">PASSE</h3>
+
+
+	<div class="collapse navbar-collapse" id="navbarResponsive">
+		<ul style="color:#7FFFD4;" class="navbar-nav ml-auto">
+			<li class="nav-item">
+				<a class="nav-link" href="{% url 'logout' %}" style="color:white;">
+					<i class="fa fa-fw fa-sign-out"></i>
+					Cerrar Sesión
+				</a>
+			</li>
+		</ul>
+	</div>
+</nav>
+<div class="content-wrapper" style="margin-left:1px!important;">
+	<div class="container-fluid">
+		{% if user.customer.is_guard or user.guard_store.guard_active %}
+		<div class="row">
+			<div class="col-sm-12">
+				<link rel="stylesheet" type="text/css" href="{% static 'css/clock-styles.css' %}">
+				<script type="text/javascript" src="{% static 'js/clock.js' %}"></script>
+				<script src="{% static 'js/moment.min.js' %}"></script>
+			</div>
+		</div>
+		<hr>
+		{%endif%}
+
+		{% if user.is_authenticated %}
+
+		{% include 'mensajes.html' %}
+
+		{% block content %}
+
+		{% if user.customer.is_guard or user.guard_store.guard_active %}
+		<div class="col-sm-12 col-md-12">
+
+		</div>
+		{% endif %}
+		{% endblock %}
+
+
+		{% endif %}
+
+	</div>
+</div>
+{% endblock body %}
+{% block footer %}
+<footer class="sticky-footer">
+	<div class="container" style='margin-left:15px;overflow: hidden;'>
+		<div class="text-center">
+			<small>Copyright &copy; Passe 2017</small>
+		</div>
+	</div>
+</footer>
+{% endblock footer %}

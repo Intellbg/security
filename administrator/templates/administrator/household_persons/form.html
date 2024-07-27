@@ -1,0 +1,142 @@
+{% extends 'header.html' %} {% block content_admin %} {% load static %}
+<div class="mt-4">
+  <!-- Form -->
+  <form id="householdPersonForm">
+    <div class="col-md-8 col-sm-8">
+      <div class="form-group col-md-10 col-sm-10">
+        <div id="formTitle"></div>
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="first_name" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Apellido</label>
+          <input type="text" class="form-control" id="last_name" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Cédula</label>
+          <input type="text" class="form-control" id="document_number" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Celular</label>
+          <input type="text" class="form-control" id="celular" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Relación Familiar</label>
+          <select class="form-select form-control" id="relation" required>
+            <option value="O">Dueño</option>
+            <option value="C">Pareja</option>
+            <option value="CR">Hijo</option>
+            <option value="R">Pariente</option>
+            <option value="F">Amigo</option>
+            <option value="T">Inquilino</option>
+            <option value="OT">Otro</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <strong> Permisos </strong>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" value="" id="is_blocked" />
+          <label class="form-label" for="is_blocked"> ¿Está bloqueada? </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" value="" id="can_use_passe_id" />
+          <label class="form-label" for="can_use_passe_id">
+            Puede usar Passe ID
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" value="" id="can_send_invitations" />
+          <label class="form-label" for="can_send_invitations">
+            Puede enviar invitaciones
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" value="" id="can_send_external" />
+          <label class="form-label" for="can_send_external">
+            Puede enviar externos
+          </label>
+        </div>
+        <div id="statusMessage"></div>
+        <button type="submit" id="createButton" class="btn btn-block btn-primary">
+          Crear
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<script src="{% static 'js/sb-admin.min.js' %}"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    const houseID = "{{house_id}}";
+    const address = "{{address}}";
+    $("#formTitle").html(
+      `<h3> <strong> Registrar persona en casa ${address} <strong> <h3>`
+    );
+    $("#householdPersonForm").submit(function (event) {
+      event.preventDefault();
+      const formData = {
+        person: {
+          first_name: $("#first_name").val(),
+          last_name: $("#last_name").val(),
+          document_number: $("#document_number").val(),
+          celular: $("#celular").val(),
+        },
+        house: houseID,
+        relation: $("#relation").val(),
+        is_blocked: $("#is_blocked").is(":checked"),
+        can_use_passe_id: $("#can_use_passe_id").is(":checked"),
+        can_send_invitations: $("#can_send_invitations").is(":checked"),
+        can_send_external: $("#can_send_external").is(":checked"),
+      };
+
+      const showError = (id, xhr) => {
+        const { responseJSON } = xhr;
+        console.log(responseJSON);
+        const getError = () => {
+          if (responseJSON) {
+            let errors = "";
+            for (const [key, value] of Object.entries(responseJSON)) {
+              errors = errors + value[0];
+            }
+            return errors;
+          }
+          return false;
+        };
+        const error = getError();
+        $(`#${id}`)
+          .text(error || "Ha ocurrido un error")
+          .addClass("alert alert-danger text-center mt-3")
+          .show();
+      };
+
+      const showSuccess = () => {
+        $("#statusMessage")
+          .text("Persona registrada con exito")
+          .addClass("alert alert-success text-center mt-3")
+          .show();
+      };
+      $.ajax({
+        url: `/api/v3/household-person`,
+        method: "POST",
+        data: JSON.stringify(formData),
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        dataType: "json",
+        contentType: "application/json",
+        success: function (data) {
+          showSuccess();
+          window.location.href = `/administrator/household-details?house_id=${houseID}`
+        },
+        error: function (xhr, status, error) {
+          showError("statusMessage", xhr);
+        },
+      });
+    });
+  });
+
+</script>
+{% endblock content_admin %}

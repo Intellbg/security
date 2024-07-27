@@ -1,0 +1,120 @@
+{% load static %}
+<style type="text/css">
+  p {
+    font: normal 100px !important;
+  }
+
+  li {
+    list-style-type: none;
+  }
+</style>
+<li class="list-group-item borderlist" style="margin-bottom:0px;padding-bottom:0px;">
+  <div class="col-md-12 col-sm-12" style="margin-bottom:0px;">
+    <div class="row">
+      {% if not error %}
+      <div class="col-md-2 col-sm-2">
+        <div class="thumbnail" style="border:none; background:white;">
+          <img alt="..." src="{% static 'img/okk_passe.png' %}" height="110" width="135" />
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-4" style="padding-right:0px;margin-right:0px;">
+        <ul style="padding:0px;">
+          <li>
+            <div style="word-wrap: break-word;max-width:300px; padding-top:0px;">
+              <h3 style="margin-top:0px;">
+                <label style="font-size:18px" class="text-muted">Invitado:</label><br><strong
+                  style="font-size:26px">{{field.name_invitee}}</strong>
+              </h3>
+            </div>
+          </li>
+          <li>
+            <h4><label class="text-muted" style="font-size:19px">C&eacute;dula: </label><strong
+                style="font-size:19px">{{field.cedula_invitee|default:'No disponible'}}</strong></h4>
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-3 col-sm-3">
+        <ul style="padding:0px;">
+          <li>
+            <div style="word-wrap: break-word;max-width:300px; padding-top:0px;">
+              <h3 style="margin-top:0px;">
+                <label style="font-size:18px" class="text-muted">Anfitri&oacute;n:</label><br><strong
+                  style="font-size:26px">{{field.name_host}}</strong>
+              </h3>
+            </div>
+          </li>
+          <li>
+            <h4><label class="text-muted" style="font-size:19px">La invitaci&oacute;n fue:</label><br><strong
+                style="font-size:19px">{{field.invite_time|date:'d-m-Y h:i A'|default:'No disponible'}}</strong></h4>
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-3 col-sm-3" style="text-align:center; margin-top:1px; margin-left:0px;">
+        <h3 style="text-align: center;"><span class="label label-success"><strong><span
+                class="glyphicon glyphicon-ok-sign"></span>PASSE CORRECTO</strong></span></h3>
+        <h3 style="font-size:34px;text-align: center;"><strong>{{field.entry_time|date:'h:i:s" A'}}</strong></h3>
+      </div>
+      {% else %}
+      <div class="col-md-2 col-sm-2">
+        <div class="thumbnail" style="border:none; background:white;">
+          <img alt="..." src="{% static 'img/rejected_passe.png' %}" height="120" width="140" />
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-4" style="padding-right:0px;margin-right:0px;">
+        {% if field %}
+        <ul style="padding:0px;">
+          <li>
+            <div style="word-wrap: break-word;max-width:300px;">
+              <h3 style="margin-top:0px;">
+                <label style="font-size:18px" class="text-muted">Invitado:</label><br>
+                <strong style="font-size:26px">{{field.name_invitee}}</strong>
+              </h3>
+            </div>
+          </li>
+          <li>
+            <h4 style="font-size:19px">
+              <label class="text-muted">C&eacute;dula: </label><strong>{{field.cedula_invitee|default:'No disponible'}}</strong>
+            </h4>
+          </li>
+        </ul>
+        {% endif %}
+      </div>
+      <div class="col-md-3 col-sm-3" style="padding:0px;">
+        {% if field %}
+        <ul class="pull-left" style="padding:0px;">
+          <li>
+            <div style="word-wrap: break-word;max-width:300px;">
+              <h3 style="margin-top:0px;">
+                <label style="font-size:18px" class="text-muted">Anfitr&iacute;on:</label><br><strong
+                  style="font-size:26px">{{field.name_host}}</strong>
+              </h3>
+            </div>
+          </li>
+          <li>
+            <h4 style="font-size:19px">
+              {% if usada %}
+              <label class="text-muted">Usada el:</label>
+              <br><strong>{{field.entry_time|date:'d-m-Y h:i A'|default:'No disponible'}}</strong>
+            </h4>
+          </li>
+          {% else %}
+          <label class="text-muted">La invitaci&oacute;n fue:</label>
+          <br><strong>{{field.invite_time|date:'d-m-Y h:i A'|default:'No disponible'}}</strong></h4>
+</li>
+{% endif %}
+</ul>
+{% endif %}
+</div>
+<div class="col-md-3 col-sm-3" style="text-align:center; margin-top:1px; argin-left:0px;">
+  <h3><span class="label label-danger"><strong><span
+          class="glyphicon glyphicon-exclamation-sign"></span>{{error}}</strong></span></h3>
+  <h3 style="font-size:34px;text-align: center;"><strong>{{datetime|date:'h:i:s" A'}}</strong></h3>
+</div>
+
+{% endif %} 
+</div>
+</div>
+<div style="clear:both;"></div>
+<input type="hidden" name="statusPasse" id="statusPasse" value="{{status}}">
+<hr class="hr-passe">
+</li>

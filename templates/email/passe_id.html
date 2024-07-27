@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+</head>
+<style>
+    img {
+        display: block;
+        margin: auto;
+    }
+</style>
+
+<body>
+    {% autoescape on %}
+    <h1>Saludos {{host}}</span></h1>
+    <p>Pase ID </p>
+    <p>Válido desde: {{initiate_timestamp}} hasta: {{expiration_timestamp}}</p>
+    <img src="data:image/png;base64,{{qr}}">
+    <p>No responder a este correo</p>
+
+    <p><strong>TEAM PASSE</strong></p>
+    {% endautoescape %}
+</body>
+
+</html>

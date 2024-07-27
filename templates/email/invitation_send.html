@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+</head>
+<style>
+    img {
+        display: block;
+        margin: auto;
+    }
+</style>
+
+<body>
+    {% autoescape on %}
+    <h1>Saludos {{invitee}}</span></h1>
+    <p>{{host}} le ha enviado una invitación a {{place}}
+    <p>Válido desde: {{initiate_timestamp}} hasta: {{expiration_timestamp}}</p>
+    <img src="data:image/png;base64,{{qr}}">
+    <p><u>Recuerde que su Passe es de un solo uso y no debe ser compartido!</u></p>
+    <p>No responder a este correo</p>
+
+    <p><strong>TEAM PASSE</strong></p>
+    {% endautoescape %}
+</body>
+
+</html>

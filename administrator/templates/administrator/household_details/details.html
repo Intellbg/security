@@ -1,0 +1,15 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content_admin %} 
+
+<div id="pageTitle" class="mb-1 ml-5"></div>
+{% include 'administrator/household_details/persons_table.html'%}
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    const address = "{{address}}";
+    $("#pageTitle").html(`<strong>Detalles de la casa ${address}</strong>`);
+  })
+</script>
+{% endblock content_admin %}

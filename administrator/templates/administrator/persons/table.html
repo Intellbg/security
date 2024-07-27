@@ -1,0 +1,195 @@
+{% extends 'header.html' %} {% block content_admin %}
+{% load static %}
+<div class="mx-5">
+  <div class="hero flex-fill">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="fa fa-fw fa-building"></i> Personas </span>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered w-100" id="personsTable" cellspacing="0">
+            <thead>
+              <tr>
+                <th class="text-align: center">persona</th>
+                <th class="text-align: center">persona</th>
+                <th class="text-align: center">persona</th>
+                <th class="text-align: center">persona</th>
+                <th class="text-align: center">persona</th>
+                <th class="text-align: center">persona</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Modals -->
+    {% include 'administrator/household_details/modals/delete_person.html' %}
+    {% include 'administrator/household_details/modals/edit_person_permissions.html' %}
+    {% include 'administrator/household_details/modals/edit_person.html' %}
+  </div>
+</div>
+</div>
+
+
+<script src="{% static 'js/sb-admin.min.js' %}"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    const relationsMap = new Map();
+    relationsMap.set("O", "Propietario");
+    relationsMap.set("C", "Pareja");
+    relationsMap.set("CR", "Hijo/a");
+    relationsMap.set("R", "Pariente");
+    relationsMap.set("F", "Amigo");
+    relationsMap.set("T", "Inquilino");
+    relationsMap.set("OT", "Otro");
+    $("#navigation li").removeClass("active");
+    $("#nav-item-household-persons").addClass("active");
+    $("#personsTable").DataTable({
+      ajax: {
+        url: `/api/v3/household-person/`,
+        type: "GET",
+        dataSrc: "results",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+      },
+      columns: [
+        {
+          title: "Nombre",
+          render: (data, type, row) =>
+            `${row.person.last_name} ${row.person.first_name}`,
+        },
+        { data: "person.document_number", title: "Cédula" },
+        { data: "person.celular", title: "Celular" },
+        {
+          title: "Relación",
+          render: (data, type, row) => relationsMap.get(row.relation),
+        },
+        {
+          title: "Casa",
+          data: "house_detail.address"
+        },
+        {
+          title: "Acciones",
+          render: function (data, type, row) {
+            const icons = {
+              edit: `<a 
+              class="edit_option"
+              title="Editar"
+              data-person-id="${row.person.id}"
+              data-first-name="${row.person.first_name}"
+              data-last-name="${row.person.last_name}"
+              data-document_number="${row.person.document_number}"
+              data-celular="${row.person.celular}"
+              >
+              <i class="fa fa-fw fa-pencil"></i> 
+              </a>`,
+              delete: `<a 
+              class="d-inline-block delete_option" 
+              title="Eliminar" 
+              data-id="${row.id}"
+              data-person="${row.person.first_name} ${row.person.last_name}"
+              >
+              <i style="color:red;" class="fa fa-fw fa-trash"></i>
+              </a>`,
+              permissions: `<a
+              class="d-inline-block permissions_option"
+              title="Permisos"
+              data-id="${row.id}"
+              data-relation="${row.relation}"
+              data-is-blocked="${row.is_blocked}"
+              data-can-use-passe-id="${row.can_use_passe_id}"
+              data-can-send-invitations="${row.can_send_invitations}"
+              data-can-send-external="${row.can_send_external}"
+              >
+              <i class="fa fa-fw fa-key"></i>
+              </a>`,
+            };
+            return `${icons.edit} ${icons.delete} ${icons.permissions}`;
+          },
+        },
+      ],
+      language: {
+        url: "https://cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json",
+      },
+      processing: true,
+      serverSide: false,
+      bInfo: false,
+      responsive: true,
+      scrollX: true,
+    });
+
+    const addRelationSelectOptions = (selectedOption) => {
+      $("#relation-select").empty();
+      relationsMap.forEach((value, key) => {
+        const newOption = new Option(
+          value,
+          key,
+          selectedOption === key && true,
+          selectedOption === key && true
+        );
+        $("#relation-select").append(newOption);
+      });
+    };
+    $("#personsTable").on("click", ".edit_option", function () {
+      const person_id = $(this).data("person-id");
+      const first_name = $(this).data("first-name");
+      const last_name = $(this).data("last-name");
+      const document_number = $(this).data("document_number");
+      const celular = $(this).data("celular");
+      $("#editPersonModal input[name='person_id']").val(person_id);
+      $("#editPersonModal input[id='first_name']").val(first_name);
+      $("#editPersonModal input[id='last_name']").val(last_name);
+      $("#editPersonModal input[id='document_number']").val(document_number);
+      $("#editPersonModal input[id='celular']").val(celular);
+      $("#editPersonModal div[id='editPersonHeader']").html(`
+      <strong> Editando a ${first_name} ${last_name} </strong>
+      `);
+      $("#editPersonModal").modal("show");
+    });
+
+    $("#personsTable").on("click", ".delete_option", function () {
+      var id = $(this).data("id");
+      var person = $(this).data("person");
+      $('#deletePersonModal input[name="id"]').val(id);
+      $("#deletePersonModal p[name='delete_msg']").html(
+        `¿Deseas borrar a ${person} ?`
+      );
+      $("#deletePersonModal").modal("show");
+    });
+
+    $("#personsTable").on("click", ".permissions_option", function () {
+      const id = $(this).data("id");
+      const relation = $(this).data("relation");
+      const is_blocked = $(this).data("is-blocked");
+      const can_use_passe_id = $(this).data("can-use-passe-id");
+      const can_send_invitations = $(this).data("can-send-invitations");
+      const can_send_external = $(this).data("can-send-external");
+      addRelationSelectOptions(relation);
+      $('#editPersonPermissionsModal input[name="id"]').val(id);
+      $('#editPersonPermissionsModal input[id="is_blocked"]').prop(
+        "checked",
+        is_blocked
+      );
+      $('#editPersonPermissionsModal input[id="can_use_passe_id"]').prop(
+        "checked",
+        can_use_passe_id
+      );
+      $('#editPersonPermissionsModal input[id="can_send_invitations"]').prop(
+        "checked",
+        can_send_invitations
+      );
+      $('#editPersonPermissionsModal input[id="can_send_external"]').prop(
+        "checked",
+        can_send_external
+      );
+      $("#editPersonPermissionsModal").modal("show");
+    });
+  });
+
+</script>
+
+{% endblock content_admin %}

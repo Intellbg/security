@@ -1,0 +1,61 @@
+<div id="exit_time_modal" class="modal fade modal-md" role="dialog">
+    <div class="modal-dialog">
+        <form method="POST" id="exit-time-form">
+            {% csrf_token %}
+            <input type="hidden" name="logbook_id" id="logbook_id" value="">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="h5">Agregar Hora de Salida</h1>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p><strong class="text-danger">¿Está seguro que desea de agregar la hora de salida.?</strong></p>
+                </div>
+                <div class="alert alert-danger alert-dismissible fade" role="alert" id="alert-message">
+                    <span id="alert-message-text"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Continuar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    $('#operations').on('click', '.btn-exit-time', async function () {
+        const id = $(this).data("id")
+        $('#logbook_id').val(id);
+        $('#exit_time_modal').modal('show');
+    });
+
+    $('#exit-time-form').submit(async (event) => {
+        event.preventDefault();
+        const date = new Date()
+        const id = $('#logbook_id').val();
+        const response = await fetch(`/api/v3/checkpoint/logbook-register/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({ "exit_time": date })
+        })
+        console.log(response)
+        if (!response.ok) {
+            console.log(alert)
+            $("#alert-message-text").text("No se pudo actualizar")
+            $("#alert-message").addClass('show')
+            return
+        }
+        $("#alert-message").removeClass("show")
+        $("#alert-message-table-text").text("Actualizado correctamente")
+        $("#alert-message-table").addClass('show')
+        $("#operations").DataTable().draw()
+        $('#exit_time_modal').modal('hide');
+    })
+
+</script>

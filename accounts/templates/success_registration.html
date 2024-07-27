@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="col-md-12 col-sm-12 col-xs-12">
+  <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3 col-sm-offset-3">
+    <div class="jumbotron">
+      <p align="center">
+        <img src="{% static 'img/passe.png' %}" alt="..." height="120" width="120">
+      </p>
+      <br>
+      <h2 style="color:#182958;font-family: Tahoma,Verdana,Segoe,sans-serif;">Felicitaciones <br> {{customer}}</h2>
+      <br>
+      <p style="color:898585;text-align:justify;">Ya formas parte de <span style="color: #39648f;">PASSE</span>. Ahora
+        un email ha sido enviado a tu correo para que puedas verificar tu cuenta y luego puedas usar nuestra
+        aplicación móvil.</p>
+      <br>
+      <br>
+      <p align="center">
+        <a href="https://play.google.com/store/apps/details?id=com.passeapp.dark_legion.passeappv2&hl=es_419"><img
+            alt="..." src="{% static 'img/google-play.png' %}" height="50" width="150"></a>
+
+        <br>
+        <br>
+
+        <a href="https://appsto.re/ec/-KmOgb.i"><img alt="..." src="{% static 'img/app-store.png' %}" height="50"
+            width="150"></a>
+
+      </p>
+    </div>
+    <div style="clear:both;"></div>
+
+  </div>
+
+</div>
+</div>
+
+{% endblock body %}
+{% block footer %}
+{% endblock footer %}

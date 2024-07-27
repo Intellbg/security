@@ -1,0 +1,110 @@
+{% load static %}
+<div id="editPersonModal" class="modal fade modal-md" role="dialog">
+  <div class="modal-dialog">
+
+    <input type="hidden" name="name" value="" />
+    <input type="hidden" name="person_id" value="" />
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+          &times;
+        </button>
+        <div style="clear: both"></div>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3" id="editPersonHeader">
+        </div>
+        <form id="editPerson">
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="first_name" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="last_name" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Cédula</label>
+            <input type="text" class="form-control" id="document_number" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Celular</label>
+            <input type="text" class="form-control" id="celular" />
+          </div>
+          <div class="form-group col-md-10 col-sm-10"></div>
+          <div style="clear: both"></div>
+          <div id="editPersonStatusMessage"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" id="editPersonButton" class="btn btn-primary">
+          Editar
+        </button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Cerrar
+        </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/sb-admin.min.js' %}"></script>
+  <script type="text/javascript">
+    $(document).ready(() => {
+      $("#editPersonModal").on("hidden.bs.modal", function () {
+        $("#editPersonStatusMessage").hide();
+      });
+      $("#editPerson").submit((event) => {
+        event.preventDefault();
+        const person_id = $('#editPersonModal input[name="person_id"]').val();
+        const first_name = $('#editPersonModal input[id="first_name"]').val();
+        const last_name = $('#editPersonModal input[id="last_name"]').val();
+        const document_number = $('#editPersonModal input[id="document_number"]').val();
+        const celular = $('#editPersonModal input[id="celular"]').val();
+        const data = {
+          first_name,
+          last_name,
+          document_number,
+          celular,
+        };
+
+        const showError = (id, xhr) => {
+          const { responseJSON } = xhr;
+          const getError = () => {
+            if (responseJSON) {
+              let errors = "";
+              for (const [key, value] of Object.entries(responseJSON)) {
+                errors = errors + value[0];
+              }
+              return errors;
+            }
+            return false;
+          };
+          const error = getError();
+          $(`#${id}`)
+            .text(error || "Ha ocurrido un error")
+            .addClass("alert alert-danger text-center mt-3")
+            .show();
+        };
+
+        $.ajax({
+          url: `/api/v3/person/${person_id}`,
+          type: "PATCH",
+          data: JSON.stringify(data),
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+          },
+          dataType: "json",
+          contentType: "application/json",
+          success: function (data) {
+            $("#editPersonModal").modal("hide");
+            $("#personsTable").DataTable().ajax.reload();
+          },
+          error: (xhr, status, error) => {
+            showError("editPersonStatusMessage", xhr);
+          },
+        });
+      });
+    });
+
+  </script>
+</div>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container h-100 text-center d-flex align-items-center">
+  <div class="w-50 mx-auto">
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <span><strong>{{ error }}</strong></span>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+          aria-hidden="true">&times;</span></button>
+    </div>
+    {% endif %}
+    <img src="{% static 'img/Passelogowhite.png' %}" class="img-responsive" style='max-height:160px;' alt="face">
+    <form role="form" method="POST" action="{% url 'login' %}">
+      {%csrf_token%} <!-- Inclusión de token csrf_token para evitar ataques de csrf -->
+      <div class="form-group" align="left">
+        <label for="email" style="color:white;">Email:</label>
+        <input type="text" class="form-control" name="email" placeholder="Ingrese su Email" required>
+      </div>
+      <div class="form-group" align="left">
+        <label for="pwd" style="color:white;">Contraseña:</label>
+        <input type="password" class="form-control" name="password" placeholder="*************" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">Iniciar Sesión</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock body %}

@@ -1,0 +1,140 @@
+{% extends "header_guard.html" %}
+
+{% block content %}
+<style type="text/css">
+	.ulclass {
+		height: 1000px;
+		width: 100%;
+		overflow: hidden;
+		overflow-y: scroll;
+	}
+
+	.ui-menu-item {
+		background-color: #fff;
+	}
+
+	.borderlist {
+		list-style-position: inside;
+		border: 0px solid #252160;
+		padding: 5px;
+		margin: 0px;
+		border-radius: 0px;
+	}
+
+	.image-container {
+		text-align: center
+	}
+
+	.hr-passe {
+		display: block;
+		margin: 0px;
+		padding: 0px;
+		border-width: 4px;
+		border-color: #000000;
+	}
+
+	.form-control[readonly] {
+		background-color: #bbdefb;
+		opacity: 1;
+	}
+
+	th.dt-body-center,
+	td.dt-body-center {
+		text-align: center;
+	}
+
+	.table-bordered {
+		margin-left: 0px;
+		width: 1205px;
+	}
+
+	.reset_line {
+		color: #fff;
+		background-color: #dc3545;
+		border-color: #dc3545;
+		max-height: 30px;
+		width: 30px;
+		border: 1px solid transparent;
+		border-radius: 100%;
+	}
+
+	.video-stream {
+		display: block;
+		width: 100%;
+	}
+
+	.video_row {
+		flex-wrap: wrap;
+		justify-content: space-around;
+		margin-top: 1em;
+		margin-bottom: 1em;
+	}
+</style>
+<script src="https://js.pusher.com/3.1/pusher.min.js"></script>
+{% if user.customer %}
+<div class="collapse show" id="collapseExample">
+	<ul class="nav nav-tabs">
+		<li class="nav-item">
+			<a class="nav-link active" href="/">Accesos</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'guard_operations' %}">Operaciones</a>
+		</li>
+	</ul>
+</div>
+
+{% endif %}
+
+<div class="col-md-6 col-sm-6 ulclass" style="max-width:100%; float: left;">
+	<h4> PASSES </h4>
+	<ul id="informacion_passecode" class="list-group" style="background:#FFFFFF;padding:5px; min-height:600px;"></ul>
+	<div style="clear:both;"></div>
+</div>
+
+
+<script type="text/javascript">
+	$(document).ready(function () {
+
+		$.ajaxSetup({
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+			}
+		});
+
+		Pusher.logToConsole = true;
+		var pusher = new Pusher('{{key}}', {
+			encrypted: true,
+			authEndpoint: '/auth_pusher/',
+			auth: {
+				headers: {
+					'X-CSRFToken': '{{ csrf_token }}'
+				}
+			}
+		});
+		var audioOk = new Audio("/static/sounds/good.mp3");
+		var audioNot = new Audio("/static/sounds/bad.mp3");
+
+		var channel2 = pusher.subscribe('{{user.customer.guardChannelName}}');
+		channel2.bind('{{user.customer.guardChannelEvent}}', function (data) {
+			if ('html' in data) {
+				var html = data.html;
+				$('#informacion_passecode').prepend(html);
+				var status = $('#statusPasse').val();
+				if (status == 200) {
+					audioOk.play();
+				} else {
+					audioNot.play();
+				}
+			}
+		});
+		channel2.bind('confirm-door', function (data) {
+			if ('html' in data) {
+				if (data.html == 'ok' && data.op != null) {
+					var slug = data.op;
+					document.getElementById('op_error').innerHTML = '<div class="alert alert-success alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Datos de operación guardados correctamente. </strong></div>';
+				}
+			}
+		});
+	})
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+<div class="row mb-3 align-items-end">
+    <div class="col-md-3">
+        <h2 class="h6">Fecha Ingreso</h2>
+        <label for="min_entry_time" class="form-label">Desde:</label>
+        <input type="text" id="min_entry_time" name="min_entry_time" class="form-control">
+    </div>
+    <div class="col-md-3">
+        <label for="max_entry_time" class="form-label">Hasta:</label>
+        <input type="text" id="max_entry_time" name="max_entry_time" class="form-control">
+    </div>
+    {% if user.administrator.first.site.has_exit%}
+    <div class="col-md-3">
+        <h2 class="h6">Fecha Salida</h2>
+        <label for="min_exit_time" class="form-label">Desde:</label>
+        <input type="text" id="min_exit_time" name="min_exit_time" class="form-control">
+    </div>
+    <div class="col-md-3">
+        <label for="max_exit_time" class="form-label">Hasta:</label>
+        <input type="text" id="max_exit_time" name="max_exit_time" class="form-control">
+    </div>
+    {% endif %}
+</div>
+
+
+<script>
+
+    function reloadDataTable() {
+        var minDate = $('#min_entry_time').val();
+        var maxDate = $('#max_entry_time').val();
+        let url = `/api/v3/logbook-register?format=datatables&entry_time__gte=${minDate}&entry_time__lt=${maxDate}`;
+        if ($('#min_exit_time').val()) { url += `&exit_time__gte=${$('#min_exit_time').val()}` }
+        if ($('#max_exit_time').val()) { url += `&exit_time__lt=${$('#max_exit_time').val()}` }
+        console.log($('#operations'))
+        console.log($('#operations').DataTable().ajax)
+        $('#operations').DataTable().ajax.url(url).load();
+    }
+
+    $(document).ready(function () {
+        const today = new Date()
+        const endDate = new Date(new Date().setDate(today.getDate() + 1));
+        const startDate = new Date(new Date().setDate(endDate.getDate() - 30));
+        const formatDate = date => date.toISOString().split('T')[0];
+
+        $('#min_entry_time').datepicker({
+            dateFormat: "yy-mm-dd",
+            onClose: () => reloadDataTable()
+        }).datepicker("setDate", startDate);
+
+        $('#max_entry_time').datepicker({
+            dateFormat: "yy-mm-dd",
+            onClose: () => reloadDataTable()
+        }).datepicker("setDate", endDate);
+
+        $('#min_exit_time').datepicker({
+            dateFormat: "yy-mm-dd",
+            onClose: () => reloadDataTable()
+        })
+
+        $('#max_exit_time').datepicker({
+            dateFormat: "yy-mm-dd",
+            onClose: () => reloadDataTable()
+        })
+    })
+</script>

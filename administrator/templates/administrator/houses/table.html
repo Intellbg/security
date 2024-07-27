@@ -1,0 +1,197 @@
+{% extends 'header.html' %} {% block content_admin %} {% load static %}
+<div>
+  <div class="hero flex-fill">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="fa fa-fw fa-building"></i> Casas</span>
+        <button id="createHouseBtn" type="button" class="btn btn-sm btn-success">
+          Crear casa
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered w-100" id="myTable" cellspacing="0">
+            <thead>
+              <tr>
+                <th class="text-align: center">Dirección</th>
+                <th class="text-align: center">Casa</th>
+                <th class="text-align: center">Casa</th>
+                <th class="text-align: center">Casa</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Modals -->
+    {% include 'administrator/houses/modals/block_house.html' %}
+    {% include 'administrator/houses/modals/delete_house.html' %}
+    {% include 'administrator/houses/modals/create_house.html' %}
+    {% include 'administrator/houses/modals/edit_house.html' %}
+
+  </div>
+</div>
+</div>
+
+<script src="{% static 'js/sb-admin.min.js' %}"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    $("#navigation li").removeClass("active");
+    $("#nav-item-houses").addClass("active");
+    $("#myTable").DataTable({
+      serverSide: true,
+      processing: true,
+      ajax: {
+        url: `/api/v3/households/?format=datatables`,
+        type: "GET",
+        dataSrc: 'data',
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        error: function (xhr, status, error) {
+          console.error(error);
+        },
+      },
+      columns: [
+        {
+          data: 'address', name: 'address',
+          render: (data, type, row) => {
+            if (!row.owner) {
+              return `<div class="text-danger">
+              ${row.address}
+              </div>
+              `
+            }
+            return row.address
+          }
+        },
+        {
+          data: "is_blocked",
+          title: "Domicilio bloqueado",
+          render: (data, type, row) => {
+            if (!row.is_blocked) {
+              return "No"
+            }
+            return "Si"
+          }
+        },
+        {
+          title: "Acciones", data: "id", searchable: false, render:
+            function (data, type, row) {
+              const icons = {
+                edit: `<a 
+            class="d-inline-block edit_option" 
+            title="Editar" 
+            data-id="${row.id}"
+            data-address="${row.address}"
+            data-is-blocked="${row.is_blocked}"
+            >
+            <i style="color:gray;" class="fa fa-fw fa-pencil"></i>
+            </a>`,
+                delete: `<a 
+            class= "d-inline-block delete_option" 
+            title="Eliminar" 
+            data-id="${row.id}"
+            data-address="${row.address}"
+            >
+            <i style="color:red;" class="fa fa-fw fa-trash"></i>
+            </a>`,
+                addPerson: `<a
+            href="/administrator/household-person/create?house_id=${row.id}"
+            class="d-inline-block " 
+            title="Agregar persona" 
+            >
+            <i style="color:blue;" class="fa fa-fw fa-user-plus"></i>
+            </a>`,
+                blockOrUnblock: `<a
+            class="d-inline-block block_option"
+            title= ${row.is_blocked ? "Desbloquear casa" : "Bloquear casa"}
+            data-id="${row.id}"
+            data-is-blocked="${row.is_blocked}"
+            data-address="${row.address}"
+          >
+           ${row.is_blocked ?
+                    `<i style="color:black;" class="fa fa-fw fa-unlock"></i>`
+                    :
+                    `<i style="color:black;" class="fa fa-fw fa-lock"></i>`
+                  } 
+          </a>`,
+                details: `<a
+            href="/administrator/household-details?house_id=${row.id}"
+            class="d-inline-block " 
+            title="Detalles" 
+            >
+            <i style="color:blue;" class="fa fa-fw fa-info-circle"></i>
+            </a>`
+              }
+              return `${icons.edit}
+                  ${icons.delete}
+                  ${icons.addPerson}
+                  ${icons.blockOrUnblock}
+                  ${icons.details}    
+                  `;
+            }
+        },
+        { data: "owner", visible: false, searchable: false },
+      ],
+      columnDefs: [
+        {
+          "defaultContent": "-",
+          "className": 'text-center',
+          "targets": "_all"
+        }
+      ],
+      language: {
+        url: 'https://cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json',
+      },
+      bInfo: false,
+      responsive: true,
+      scrollX: true,
+    });
+
+    $("#myTable").on("click", ".block_option", function () {
+      var id = $(this).data("id");
+      var is_blocked = $(this).data("is-blocked");
+      var address = $(this).data("address");
+      $("#blockButton").data("id", id);
+      $("#blockButton").addClass(is_blocked ? "btn-success" : "btn-danger");
+      $('#blockModal input[name="is_blocked"]').val(is_blocked);
+      $('#blockModal input[name="id"]').val(id);
+      $("#blockModal p[name='block_msg']").html(
+        `¿Deseas ${is_blocked ? "desbloquear" : "bloquear"} esta casa: ${address} ?`
+      );
+      $("#blockButton").html(
+        `${is_blocked ? "Desbloquear" : "Bloquear"}`
+      )
+      $("#blockModal").modal("show");
+    });
+    $("#myTable").on("click", ".edit_option", function () {
+      var id = $(this).data("id");
+      var is_blocked = $(this).data("is-blocked");
+      var address = $(this).data("address");
+      $("#editHouseModal input[name='id']").val(id);
+      $("#editHouseModal input[name='address']").val(address);
+      $("#editHouseModal input[name='is_blocked']").prop("checked", is_blocked);
+      $("#editHouseModal").modal("show");
+    });
+
+    $("#myTable").on("click", ".delete_option", function () {
+      var id = $(this).data("id");
+      var address = $(this).data("address");
+      $("#blockButton").data("id", id);
+      $('#deleteModal input[name="id"]').val(id);
+      $("#deleteModal p[name='delete_msg']").html(
+        `¿Deseas borrar esta casa: ${address} ?`
+      )
+      $("#deleteModal").modal("show");
+    });
+
+    $("#createHouseBtn").on("click", function () {
+      $("#createHouseModal").modal("show");
+    });
+  });
+</script>
+
+{% endblock content_admin %}

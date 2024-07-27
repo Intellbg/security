@@ -1,0 +1,147 @@
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+
+<div class="card mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <div>
+            <i class="fa fa-table"></i>
+            Visitantes
+        </div>
+    </div>
+    <div class="card-body">
+        {% include 'operations/forms/filter.html' %}
+        <div class="alert alert-success alert-dismissible fade" role="alert" id="alert-message-table">
+            <span id="alert-message-table-text"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" width="100%" id="operations" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="text-center">Fecha de Llegada</th>
+                        <th class="text-center">Anfitrión</th>
+                        <th class="text-center">Visitante</th>
+                        <th class="text-center">Documento Visitante</th>
+                        <th class="text-center">Placa</th>
+                        <th class="text-center">Puerta</th>
+                        <th class="text-center">Dirección</th>
+                        <th class="text-center">Método</th>
+                        <th class="text-center">Tipo</th>
+                        <th class="text-center">Detalle</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    <tr class="search-row">
+                        <th></th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th>
+                            <select class="form-select form-select-sm">
+                                <option value="">Seleccionar Método</option>
+                                <option value="ID">Passe ID</option>
+                                <option value="I">Invitación</option>
+                                <option value="D">Invitación Descargada</option>
+                            </select>
+                        </th>
+                        <th>
+                            <select class="form-select form-select-sm">
+                                <option value="">Seleccionar Tipo</option>
+                                <option value="Vi">Visita</option>
+                                <option value="En">Entrega de Perdido</option>
+                                <option value="Pr">Propietario</option>
+                                <option value="Tr">Trabajador</option>
+                                <option value="Sa">Sala de Ventas</option>
+                            </select>
+                        </th>
+                        <th><input type="text" class="form-control form-control-sm w-100" placeholder="Buscar"></th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{% if user.checkpoint.first.site.has_exit %}
+{% include 'operations/modals/exit_time.html' %}
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script type="text/javascript">
+    const has_exit = "{{user.administrator.first.site.has_exit}}" === "True" || "{{user.checkpoint.first.site.has_exit}}" === "True"
+    const is_checkpoint = "{{user.checkpoint.first.site.has_exit}}" === "True"
+
+    $(document).ready(function () {
+        var table = $('#operations').DataTable({
+            ajax: {
+                url: `/api/v3/logbook-register?format=datatables`,
+                type: "GET",
+                dataSrc: 'data',
+                contentType: 'application/json',
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                error: function (xhr, error, thrown) {
+                    console.error(xhr);
+                }
+            },
+            columns: [
+                { "data": "entry_time", },
+                { "data": "host", name: 'user_host__last_name' },
+                { "data": "invitee", name: 'user_invitee__last_name' },
+                { "data": "user_invitee.document_number" },
+                { "data": "plate" },
+                { "data": "lane_used", },
+                { "data": "address" },
+                { "data": "method", },
+                { "data": "detail", },
+            ].filter(Boolean),
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
+            },
+            columnDefs: [{
+                "defaultContent": "-",
+                "className": 'text-center',
+                "targets": "_all"
+            }],
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            scrollX: true,
+            order: [['entry_time', 'desc']],
+            fixedHeader: true,
+            initComplete: function () {
+                this.api().columns().every(function () {
+                    try {
+                        var column = this;
+                        $('input', this.header()).on('keyup change clear', function () {
+                            if (column.search() !== this.value) {
+                                column.search(this.value).draw();
+                            }
+                        });
+                        $('select', column.header()).on('change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                            column.search(val ? '^' + val + '$' : '', true, false).draw();
+                        });
+                    } catch (e) {
+                        console.error(e)
+                    }
+                });
+            }
+        },);
+        $('.search-row th').off('click.DT');
+    });
+</script>
