@@ -17,36 +17,38 @@ from django.template import loader
 # Uso de loggers para capturar pistas de auditoria
 import logging
 logger = logging.getLogger("accounts")
+from django_project.utils import get_client_ip
+
 
 def login(request):
     if request.method == "POST":
         email = request.POST.get("email", None)
         password = request.POST.get("password", None)
         if not (email and password):
-            logger.warning(f"login error")
+            logger.warning(f"{get_client_ip(request)}  login error")
             return render(request, "login.html", {"error": "Error de parámetros"})
         user = authenticate(username=email, password=password)
         if not user:
             # Uso de loggers para capturar pistas de auditoria
-            logger.warning(f"login error")
+            logger.warning(f"{get_client_ip(request)}  login error")
             return render(request, "login.html", {"error": "Usuario Inválido"})
         if user.is_staff:
-            logger.info(f"{user.id} staff login success")
+            logger.info(f"{get_client_ip(request)}  {user.id} staff login success")
             return HttpResponseRedirect(reverse("admin:index"))
         if not (
             Administrator.objects.filter(user=user).exists() #Uso de query de ORM para evitar inyección SQL
             or Checkpoint.objects.filter(user=user).exists() #Uso de query de ORM para evitar inyección SQL
         ):
-            logger.warning(f"{user.id} login error")
+            logger.warning(f"{get_client_ip(request)} {user.id} login error")
             return render(request, "login.html", {"error": "Sin Permisos"})
         auth_login(request, user)
-        logger.info(f"{user.id} login success")
+        logger.info(f"{get_client_ip(request)} {user.id} login success")
         return HttpResponseRedirect("/")
     return render(request, "login.html")
 
 
 def logout(request):
-    logger.info(f"{request.user.id} logout")
+    logger.info(f"{get_client_ip(request)} {request.user.id} logout")
     auth_logout(request)
     return HttpResponseRedirect("/login/")
 
